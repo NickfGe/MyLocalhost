@@ -2,6 +2,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 
 public class LocalWebServer : MonoBehaviour
@@ -9,6 +10,7 @@ public class LocalWebServer : MonoBehaviour
     private HttpListener _httpListener;
     private const string Url = "http://localhost:55050/";
     private string _htmlFilePath;
+    public TextMeshProUGUI debug;
 
     private void Start()
     {
@@ -27,7 +29,8 @@ public class LocalWebServer : MonoBehaviour
         _httpListener = new HttpListener();
         _httpListener.Prefixes.Add(Url);
         _httpListener.Start();
-        Debug.Log($"Servidor iniciado en {Url}");
+        debug.text = $"Servidor iniciado en {Url}";
+        Debug.Log(debug.text);
         Task.Run(() => Listen());
     }
 
@@ -37,7 +40,8 @@ public class LocalWebServer : MonoBehaviour
         {
             _httpListener.Stop();
             _httpListener.Close();
-            Debug.Log("Servidor detenido.");
+            debug.text = "Servidor detenido.";
+            Debug.Log(debug.text);
         }
     }
 
