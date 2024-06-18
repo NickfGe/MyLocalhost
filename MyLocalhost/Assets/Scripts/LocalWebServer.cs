@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -9,14 +10,15 @@ public class LocalWebServer : MonoBehaviour
 {
     private HttpListener _httpListener;
     private const string Url = "http://localhost:55050/";
-    private string _htmlFilePath;
+    private string _webContentPath;
     public TextMeshProUGUI debug;
 
     private void Start()
     {
-        // Asegurarse de que la carpeta WebContent esté en la ruta correcta después de la compilación
-        _htmlFilePath = Path.Combine(Application.streamingAssetsPath, "WebContent", "index.html");
+        // Definir la ruta de los archivos en StreamingAssets
+        _webContentPath = Path.Combine(Application.streamingAssetsPath, "WebContent");
         StartServer();
+        OpenBrowser(Url);
     }
 
     private void OnApplicationQuit()
@@ -30,8 +32,7 @@ public class LocalWebServer : MonoBehaviour
         _httpListener.Prefixes.Add(Url);
         _httpListener.Start();
         debug.text = $"Servidor iniciado en {Url}";
-        Debug.Log(debug.text);
-        Application.OpenURL(Url);
+        UnityEngine.Debug.Log(debug.text);
         Task.Run(() => Listen());
     }
 
@@ -42,7 +43,7 @@ public class LocalWebServer : MonoBehaviour
             _httpListener.Stop();
             _httpListener.Close();
             debug.text = "Servidor detenido.";
-            Debug.Log(debug.text);
+            UnityEngine.Debug.Log(debug.text);
         }
     }
 
@@ -52,10 +53,13 @@ public class LocalWebServer : MonoBehaviour
         {
             var context = await _httpListener.GetContextAsync();
             var response = context.Response;
+            string requestUrl = context.Request.Url.LocalPath.TrimStart('/');
 
-            if (File.Exists(_htmlFilePath))
+            string filePath = Path.Combine(_webContentPath, requestUrl);
+            if (File.Exists(filePath))
             {
-                byte[] buffer = File.ReadAllBytes(_htmlFilePath);
+                byte[] buffer = File.ReadAllBytes(filePath);
+                response.ContentType = GetContentType(filePath);
                 response.ContentLength64 = buffer.Length;
                 await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
             }
@@ -68,6 +72,31 @@ public class LocalWebServer : MonoBehaviour
             }
 
             response.OutputStream.Close();
+        }
+    }
+
+    private string GetContentType(string filePath)
+    {
+        string extension = Path.GetExtension(filePath).ToLowerInvariant();
+        switch (extension)
+        {
+            case ".html": return "text/html";
+            case ".css": return "text/css";
+            case ".js": return "application/javascript";
+            default: return "application/octet-stream";
+        }
+    }
+
+    private void OpenBrowser(string url)
+    {
+        try
+        {
+            url += "index.html";
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (System.Exception e)
+        {
+            UnityEngine.Debug.LogError($"No se pudo abrir el navegador: {e.Message}");
         }
     }
 }
