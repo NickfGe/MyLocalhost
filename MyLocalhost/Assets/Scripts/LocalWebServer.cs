@@ -31,6 +31,7 @@ public class LocalWebServer : MonoBehaviour
         _httpListener.Start();
         debug.text = $"Servidor iniciado en {Url}";
         Debug.Log(debug.text);
+        Application.OpenURL(Url);
         Task.Run(() => Listen());
     }
 
