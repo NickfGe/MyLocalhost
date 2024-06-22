@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
             else {
                 var userToken = prompt("Insert your token");
 
-                if(token === userToken) window.location.href = './truePage/index.html'
+                if(token === userToken) window.location.href = './truePage/dist/index.html'
                 else wrongToken();
             }
         })
