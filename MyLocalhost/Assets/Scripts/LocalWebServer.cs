@@ -18,12 +18,14 @@ public class LocalWebServer : MonoBehaviour
         // Definir la ruta de los archivos en StreamingAssets
         _webContentPath = Path.Combine(Application.streamingAssetsPath, "WebContent");
         StartServer();
+        StartApacheServer();
         OpenBrowser(Url);
     }
 
     private void OnApplicationQuit()
     {
         StopServer();
+        StopXampp();
     }
 
     private void StartServer()
@@ -97,6 +99,98 @@ public class LocalWebServer : MonoBehaviour
         catch (System.Exception e)
         {
             UnityEngine.Debug.LogError($"No se pudo abrir el navegador: {e.Message}");
+        }
+    }
+
+    private void StartApacheServer()
+    {
+        string xamppPath = GetXamppPath();
+
+        if (!string.IsNullOrEmpty(xamppPath))
+        {
+            string apacheStartPath = Path.Combine(xamppPath, "apache_start.bat");
+
+            if (File.Exists(apacheStartPath))
+            {
+                ProcessStartInfo processInfo = new ProcessStartInfo
+                {
+                    FileName = apacheStartPath,
+                    UseShellExecute = true
+                };
+
+                try
+                {
+                    Process.Start(processInfo);
+                    UnityEngine.Debug.Log("Apache server started successfully.");
+                }
+                catch (System.Exception ex)
+                {
+                    UnityEngine.Debug.LogError("Failed to start Apache server: " + ex.Message);
+                }
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("apache_start.bat not found at path: " + apacheStartPath);
+            }
+        }
+        else
+        {
+            UnityEngine.Debug.LogError("XAMPP path not found.");
+        }
+    }
+
+    // Este método intenta obtener la ruta de XAMPP de una manera que se pueda ajustar a tus necesidades.
+    private string GetXamppPath()
+    {
+        // Por defecto, busca en el directorio de instalación común de XAMPP.
+        string[] possiblePaths = new string[]
+        {
+            @"C:\xampp",
+            @"D:\xampp",
+            @"E:\xampp",
+            @"F:\xampp",
+            @"G:\xampp",
+            @"H:\xampp"
+            // Agrega más rutas si es necesario
+        };
+
+        foreach (string path in possiblePaths)
+        {
+            if (Directory.Exists(path))
+            {
+                return path;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private void StopXampp()
+    {
+        string xamppPath = GetXamppPath();
+
+        if (!string.IsNullOrEmpty(xamppPath))
+        {
+            string apacheStartPath = Path.Combine(xamppPath, "apache_stop.bat");
+
+            if (File.Exists(apacheStartPath))
+            {
+                ProcessStartInfo processInfo = new ProcessStartInfo
+                {
+                    FileName = apacheStartPath,
+                    UseShellExecute = true
+                };
+
+                try
+                {
+                    Process.Start(processInfo);
+                    UnityEngine.Debug.Log("Apache server stopped successfully.");
+                }
+                catch (System.Exception ex)
+                {
+                    UnityEngine.Debug.LogError("Failed to stop Apache server: " + ex.Message);
+                }
+            }
         }
     }
 }
